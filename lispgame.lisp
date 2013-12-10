@@ -104,3 +104,6 @@
   (if (member (car sexp) *allowed-commands*)
       (eval sexp)
       `(sorry cannot understand ,sexp command)))
+
+(defun one-more ()
+  '(one more dummy function))
