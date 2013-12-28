@@ -13,4 +13,11 @@
 	    s))
       ""))
 
-;one space
+(defun nodes->dot (nodes)
+  (mapc (lambda (node)
+	  (fresh-line)
+	  (princ (dot-name (car node)))
+	  (princ "[label=\"")
+	  (princ (dot-label node))
+	  (princ "\"];"))
+	nodes))
