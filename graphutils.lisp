@@ -21,3 +21,30 @@
 	  (princ (dot-label node))
 	  (princ "\"];"))
 	nodes))
+
+(defun edges->dot (edges)
+       (mapc (lambda (node)
+	       (mapc (lambda (edge)
+		       (fresh-line)
+		       (princ (dot-name (car node)))
+		       (princ "->")
+		       (princ (dot-name (car edge)))
+		       (princ "[label=\"")
+		       (princ (dot-label (cdr edge)))
+		       (princ "\"];"))
+		     (cdr node)))
+	     edges))
+
+(defun graph->dot (nodes edges)
+  (princ "digraph{")
+  (nodes->dot nodes)
+  (edges->dot edges)
+  (princ "}"))
+
+(defun dot-png (fname thunk)
+  (with-open-file (*standard-output*
+		   fname
+		   :direction :output
+		   :if-exists :supersede)
+    (funcall thunk))
+  (ext:shell (concatenate 'string "dot -Tpng -O " fname)))
