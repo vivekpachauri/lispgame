@@ -111,5 +111,4 @@
 			'(lights!)))
 		 (when (some #'cdr (cdr (assoc n edge-alist)))
 		   '(sirens!))))))
-		       
-		       
+
