@@ -97,6 +97,8 @@
 	      (within-one x from-node edge-alist))
 	    (neighbors to-check-node edge-alist))))
 
+;;;function that builds the final node alist (basically the final
+;;;map of the city)
 (defun make-city-nodes (edge-alist)
   (let ((wumpus (random-node))
 	(glow-worms (loop for i below *worm-num* collect (random-node))))
@@ -111,4 +113,44 @@
 			'(lights!)))
 		 (when (some #'cdr (cdr (assoc n edge-alist)))
 		   '(sirens!))))))
+
+;;;Initializing a new game of grand theft wumpus
+(defun new-game()
+  (setf *city-edges* (make-city-edges))
+  (setf *city-nodes* (make-city-nodes *city-edges*))
+  (setf *player-position* (find-empty-node))
+  (setf *visited-nodes* (list *player-position*))
+  (draw-city))
+
+(defun find-empty-node()
+  (let ((x (random-node)))
+    (if (cdr (assoc x *city-nodes*))
+	(find-empty-node)
+	x)))
+
+(defun draw-city()
+  (ugraph->png "city" *city-nodes* *city-edges*))
+
+(defun known-city-nodes ()
+  (mapcar (lambda (node)
+	    (if (member node *visited-nodes*)
+		(let ((n (assoc node *city-nodes*)))
+		  (if (eql node *player-position*)
+		      (append n '(*))
+		      n))
+		(list node '?)))
+	  (remove-duplicates 
+	   (append *visited-nodes* 
+		   (mapcan (lambda (node)
+			     (mapcar #'car (cdr (assoc node *city-edges*))))
+			   *visited-nodes*)))))
+
+(defun known-city-edges()
+  (mapcar (lambda (node)
+	    (cons node (mapcar (lambda (x)
+				 (if (member (car x) *visited-nodes*)
+				     x
+				     (list (car x))))
+			       (cdr (assoc node *city-edges*)))))
+	  *visited-nodes*))
 
