@@ -132,6 +132,8 @@
   (ugraph->png "city" *city-nodes* *city-edges*))
 
 (defun known-city-nodes ()
+  "function to return only those nodes of the city which have already been
+visited"
   (mapcar (lambda (node)
 	    (if (member node *visited-nodes*)
 		(let ((n (assoc node *city-nodes*)))
@@ -146,6 +148,9 @@
 			   *visited-nodes*)))))
 
 (defun known-city-edges()
+"function to return only those edges of the city which have already been
+visited. If an edge's two nodes have not yet been visited then any cop
+information about that edge or street will not be shown"
   (mapcar (lambda (node)
 	    (cons node (mapcar (lambda (x)
 				 (if (member (car x) *visited-nodes*)
@@ -153,4 +158,49 @@
 				     (list (car x))))
 			       (cdr (assoc node *city-edges*)))))
 	  *visited-nodes*))
+
+(defun draw-known-city ()
+  "function to draw only that part of the city which has already been visited"
+  (ugraph->png "known-city" (known-city-nodes) (known-city-edges)))
+
+
+;;;Initializing a new game of grand theft wumpus while also drawing
+;;;only those nodes which have already been visited
+(defun new-game()
+  (setf *city-edges* (make-city-edges))
+  (setf *city-nodes* (make-city-nodes *city-edges*))
+  (setf *player-position* (find-empty-node))
+  (setf *visited-nodes* (list *player-position*))
+  (draw-city)
+  (draw-known-city))
+
+(defun walk (pos)
+  (handle-direction pos nil))
+
+(defun charge (pos)
+  (handle-direction pos t))
+
+(defun handle-direction (pos charge)
+  (let ((edge (assoc pos (cdr (assoc *player-position*
+				     *city-edges*)))))
+    (if edge
+	(handle-new-place edge pos charge)
+	(princ "That location does not exist!!"))))
+
+(defun handle-new-place (edge pos charge)
+  (let* ((node (assoc pos *city-nodes*))
+	 (has-worm (and (member 'glow-worm node)
+			(not (member pos *visited-nodes*)))))
+    (pushnew pos *visited-nodes*)
+    (setf *player-position* pos)
+    (draw-known-city)
+    (cond ((member 'cops edge) (princ "You ran into cop. Game Over."))
+	  ((member 'wumpus node) (if charging
+				     (princ "You found the Wumpus!")
+				     (princ "You ran into Wumpus")))
+	  (charging (princ "You waster your last bullet. Game Over."))
+	  (has-worm (let ((new-pos (random-node)))
+		      (princ "You ran into a glow-worm gang. You are now at ")
+		      (princ new-pos)
+		      (handle-new-place nil new-pos nil))))))
 
