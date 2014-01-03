@@ -1,4 +1,5 @@
 lispgame
 ========
 
-this is where I will store the code for the text based adventure game I will create
+This is where I will store the lisp code for the games I will write as part of learning
+lisp. Most of these games will be text based games.
