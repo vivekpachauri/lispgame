@@ -1,4 +1,4 @@
-;;;code for grand theft wumpus
+;;;code for grand theft wumpus game
 ;;;first load the graph util file
 (load "graphutils")
 

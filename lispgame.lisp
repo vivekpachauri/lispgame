@@ -1,3 +1,6 @@
+;;;currently this code is only for the adventure game
+;;;depending on how I feel later on, I might include the code
+;;for other games in this as well instead of creating new files
 (defparameter *nodes* '((living-room 
                             (you are in the living room. a wizard is snoring on the couch.))
                         (garden
