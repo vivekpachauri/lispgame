@@ -72,3 +72,124 @@
 
 (defun randval(n)
   (1+ (random (max 1 n))))
+
+;;helper functions for player attack
+(defun random-monster()
+  "function to pick a random monster"
+  (let ((m (aref *monsters* (random (length *monsters*)))))
+    (if (monster-dead m)
+	(random-monster)
+	m)))
+
+(defun pick-monster ()
+ "function to pick a particular monster"
+  (fresh-line)
+  (princ "Monster #:")
+  (let ((x (read)))
+    (if (not (and (integerp x) (>= x 1) (<= x *monster-num*)))
+	(progn (princ "That is not a valid monster number.")
+	       (princ "Pick between 1 and ") (princ *monster-num*)
+	       (pick-monster))
+	(let ((m (aref *monsters* (1- x))))
+	  (if (monster-dead m)
+	      (progn
+		(princ "That monster is already dead.")
+		(pick-monster))
+	      m)))))
+
+;;Monster management functions
+(defun init-monsters ()
+  (setf *monster*
+	(map 'vector
+	     (lambda (x)
+	       (funcall (nth (random (length *monster-builders*))
+			     *monster-builders*)))
+	     (make-array *monster-num*))))
+
+(defun monster-dead (m)
+  "function to check if the givem monster is dead"
+  (<= (monster-health m) 0))
+
+(defun monsters-dead ()
+  "function to check if all the monsters are dead"
+  (every #'monster-dead *monsters*))
+
+(defun show-monsters ()
+  "function to display information about all the monsters"
+  (fresh-line)
+  (princ "Your foes: ")
+  (let ((x 0))
+    (map 'list
+	 (lambda (m)
+	   (fresh-line)
+	   (princ "  ")
+	   (princ (incf x))
+	   (princ ". ")
+	   (if (monster-dead m)
+	       (princ "**dead**")
+	       (progn
+		 (princ "(Health=")
+		 (princ (monster-health m))
+		 (princ ") ")
+		 (monter-show m))))
+	 *monsters*)))
+
+(defstruct monster (health (randval 10)))
+
+(defmethod monster-hit (m x)
+  "function to register hitting the monster m with x power"
+  (decf (monster-health m) x)
+  (if (monster-dead m)
+      (progn (princ "You killed ") (princ (type-of m)) (princ "!"))
+      (progn (princ "You hit the ") (princ (type-of m))
+	     (princ ", knocking off ") (princ x) (princ " health points."))))
+
+(defmethod monster-show (m)
+  "generic method to display information about monster m"
+  (princ "A fierce ")
+  (princ (type-of m)))
+
+(defmethod monster-attack (m)
+  "generic method to register the monster m attacking")
+
+;;define the orc data type
+(defstruct (orc (:include monster)) (club-level (randval 8)))
+(push #'make-orc *monster-builders*)
+
+(defmethod monster-show ((m orc))
+  "orc specific method to display the information about the monster"
+  (princ "A wicked orc with a level ")
+  (princ (orc-club-level m))
+  (princ " club."))
+
+(defmethod monster-attack ((m orc))
+  "orc specific method to register attack by this monster"
+  (let ((x (randval (orc-club-level m))))
+    (princ "An orc swing his club at you and knocks off ")
+    (princ x) (princ " of your health points. ")
+    (decf *player-health* x)))
+
+(defstruct (hydra (:include monster)))
+(push #'make-hydra *monster-builders*)
+
+(defmethod monster-show ((m hydra))
+  "hydra specific method to display information about the monster"
+  (princ "A malicious hydra with ") (princ (hydra-health m))
+  (princ " heads."))
+
+(defmethod monster-hit ((m hydra) x)
+  "hydra specific method to register attack to the monster"
+  (decf (monster-health m) x)
+  (if (monster-dead m)
+      (princ "Corpse of the fully decapacitated and decapacitated hydra falls
+to the ground")
+      (progn (princ "You lop off ") (princ x) (princ " of the hydra's heads!"))))
+
+(defmethod monster-attack ((m hydra))
+  "hydra specific method to register the hydra attacking the player"
+  (let ((x (randval (ash (monster-health m) -1))))
+    (princ "A hydra attacks you with ") (princ x)
+    (princ " of its heads! It also grows back one of its head back! ")
+    (incf (monster-health m))
+    (decf *player-health* x)))
+
