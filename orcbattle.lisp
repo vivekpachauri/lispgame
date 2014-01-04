@@ -18,8 +18,8 @@
 
 ;;the controller function which will call the helper functions to drive the game
 (defun orc-battle ()
-  (initialize-monsters)
-  (initialize-player)
+  (init-monsters)
+  (init-player)
   (game-loop)
   (when (player-dead)
     (princ "You have been killed. Game Over..."))
@@ -30,7 +30,7 @@
   (unless (or (player-dead) (monsters-dead))
     (show-player)
     (dotimes (k (1+ (truncate (/ (max 0 *player-agility*) 15))))
-      (unless (monster-dead)
+      (unless (monsters-dead)
 	(show-monsters)
 	(player-attack)))
     (fresh-line)
@@ -64,10 +64,10 @@
 	 (princ "Your double swing has a strength of ") (princ x)
 	 (fresh-line)
 	 (monster-hit (pick-monster) x)
-	 (unless (monster-dead)
+	 (unless (monsters-dead)
 	   (monster-hit (pick-monster) x))))
     (otherwise (dotimes (x (1+ (randval (truncate (/ *player-strength* 3)))))
-		 (unless (monster-dead)
+		 (unless (monsters-dead)
 		   (monster-hit (random-monster) 1))))))
 
 (defun randval(n)
@@ -99,7 +99,7 @@
 
 ;;Monster management functions
 (defun init-monsters ()
-  (setf *monster*
+  (setf *monsters*
 	(map 'vector
 	     (lambda (x)
 	       (funcall (nth (random (length *monster-builders*))
@@ -131,7 +131,7 @@
 		 (princ "(Health=")
 		 (princ (monster-health m))
 		 (princ ") ")
-		 (monter-show m))))
+		 (monster-show m))))
 	 *monsters*)))
 
 (defstruct monster (health (randval 10)))
@@ -165,6 +165,7 @@
 (defmethod monster-attack ((m orc))
   "orc specific method to register attack by this monster"
   (let ((x (randval (orc-club-level m))))
+    (fresh-line)
     (princ "An orc swing his club at you and knocks off ")
     (princ x) (princ " of your health points. ")
     (decf *player-health* x)))
@@ -188,8 +189,49 @@ to the ground")
 (defmethod monster-attack ((m hydra))
   "hydra specific method to register the hydra attacking the player"
   (let ((x (randval (ash (monster-health m) -1))))
+    (fresh-line)
     (princ "A hydra attacks you with ") (princ x)
     (princ " of its heads! It also grows back one of its head back! ")
     (incf (monster-health m))
     (decf *player-health* x)))
+
+;;define the structure type for slimy monster
+(defstruct (slimy-mold (:include monster)) (sliminess (randval 5)))
+(push #'make-slimy-mold *monster-builders*)
+
+(defmethod monster-show ((m slimy-mold))
+  "Slimy mold monster specifiec method to describe the monster"
+  (princ "A slimy mold with a slimeness of ")
+  (princ (slimy-mold-sliminess m)))
+
+(defmethod monster-attack ((m slimy-mold))
+  "Slimy mold specific method to register the slimy mold attacking the player"
+  (let ((x (randval (slimy-mold-sliminess m))))
+    (fresh-line)
+    (princ "A slimy mold wraps around your leg and decreases your agility by ")
+    (princ x) (princ "!")
+    (decf *player-agility* x)
+    (when (zerop (random 2))
+      (princ "It also squirts in your face and takes away a health point!!")
+      (decf *player-health* 1))))
+
+;;methods for the cunning brigand
+(defstruct (brigand (:include monster)))
+(push #'make-brigand *monster-builders*)
+
+(defmethod monster-attack ((m brigand))
+  "Brigand specific method to register the bigand attacking the player"
+  (let ((x (max *player-health* *player-agility* *player-strength*)))
+    (cond ((= x *player-health*)
+	   (fresh-line)
+	   (princ "A Brigand hits you with his slingshot taking off 2 health points")
+	   (decf *player-health* 2))
+	  ((= x *player-agility*)
+	   (fresh-line)
+	   (princ "A Brigand catches your leg with his whip taking off 2 agility points")
+	   (decf *player-agility* 2))
+	  ((= x *player-strength*)
+	   (fresh-line)
+	   (princ "A Brigand strikes your arm with his whip reducing your strength by 2")
+	   (decf *player-strength* 2)))))
 
