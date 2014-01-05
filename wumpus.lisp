@@ -174,7 +174,7 @@ information about that edge or street will not be shown"
   (draw-city)
   (draw-known-city))
 
-(defun walk (pos)
+(defun walk-to (pos)
   (handle-direction pos nil))
 
 (defun charge (pos)
