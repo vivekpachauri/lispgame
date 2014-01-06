@@ -55,4 +55,62 @@
 
 (defun turn (animal)
   "funchtion to handle the turning of animal. this function will decide if and how much (depending on the genes of the animal) the animal should turn on a given day"
-  )
+  (let ((x (random (apply #'+ (animal-genes animal)))))
+    (labels ((angle (genes x)
+	       (let ((xnu (- x (car genes))))
+		 (if (< xnu 0)
+		     0
+		     (1+ (angle (cdr genes) xnu))))))
+      (setf (animal-dir animal)
+	    (mod (+ (animal-dir animal) (angle (animal-genes animal) x))
+		 8)))))
+
+(defun eat (animal)
+  "function to handle the animal eating. the logic is simple, if there is a plant at the animal's current location then consume it"
+  (let ((pos (cons (animal-x animal) (animal-y animal))))
+    (when (gethash pos *plants*)
+      (incf (animal-energy animal) *plant-energy*)
+      (remhash pos *plants*))))
+
+(defparameter *reproduction-energy* 200)
+
+(defun reproduce (animal)
+  "function to handle the animal reproduction"
+  (let ((e (animal-energy animal)))
+    (when (> e *reproduction-energy*)
+      (setf (animal-energy animal) (ash e -1))
+      (let ((animal-nu (copy-structure animal))
+	    (genes (copy-list (animal-genes animal)))
+	    (mutation (random 8)))
+	(setf (nth mutation genes) (max 1 (+ (nth mutation genes) (random 3) -1)))
+	(setf (animal-genes animal-nu) genes)
+	(push animal-nu *animals*)))))
+
+(defun update-world ()
+  "function to take care of all the events in a day of the simulation"
+  (setf *animals* (remove-if (lambda (animal) (<= (animal-energy animal) 0)) *animals*))
+  (mapc (lambda (animal)
+	  (turn animal)
+	  (move animal)
+	  (eat animal)
+	  (reproduce animal))
+	*animals*)
+  (add-plants))
+
+(defun draw-world ()
+  "function to draw the existing situation of the world on the console"
+  (loop for y below *height*
+       do (progn (fresh-line) (princ "|")
+		 (loop for x below *width* do
+		      (princ (cond ((some (lambda (animal)
+					    (and (= (animal-x animal) x)
+						 (= (animal-y animal) y)))
+					  *animals*)
+				    #\M)
+				   ((gethash (cons x y) *plants*) #\*)
+				   (t #\space))))
+		 (princ "|"))))
+
+
+					 
+	      
