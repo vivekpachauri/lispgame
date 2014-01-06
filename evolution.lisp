@@ -2,9 +2,9 @@
 
 ;;global variables
 (defparameter *width* 100)
-(defparameter *height* 300)
+(defparameter *height* 50)
 (defparameter *jungle* '(45 10 10 10))
-(defparameter *plant-enerty* 80)
+(defparameter *plant-energy* 80)
 
 ;;hash table to contain the location of each plant
 (defparameter *plants* (make-hash-table :test #'equal))
@@ -41,7 +41,7 @@
 					  ((or (= direction 1)
 					       (= direction 5)) 0)
 					  (t -1))
-				    *width)
+				    *width*)
 				 *width*))
     (setf (animal-y animal) (mod (+ y
 				    (cond ((and (>= direction 0)
