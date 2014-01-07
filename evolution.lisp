@@ -1,7 +1,7 @@
 ;;;this file will contain the code for the evolution game
 
 ;;global variables
-(defparameter *width* 100)
+(defparameter *width* 500)
 (defparameter *height* 50)
 (defparameter *jungle* '(45 10 10 10))
 (defparameter *plant-energy* 80)
