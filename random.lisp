@@ -56,7 +56,6 @@
 	      (setf previous (list x)))))
 	 sorted)
     aggregate))
-)
 
 
 
