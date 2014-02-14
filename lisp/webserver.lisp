@@ -29,3 +29,12 @@ ascii coded characters"
 		    (and i2 (parse-params (subseq s (1+ i2))))))
 	  ((equal s "") nil)
 	  (t s))))
+
+(defun parse-url (request)
+  (let* ((url (subseq request 
+		      (+ 2 (position #\space request))
+		      (position #\space request :from-end t)))
+	 (x (position #\? request)))
+    (if x 
+	(cons (subseq url 0 x) (parse-params (subseq url (1+ x))))
+	(cons url '()))))
