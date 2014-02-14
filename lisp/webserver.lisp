@@ -22,6 +22,7 @@ ascii coded characters"
     (coerce (f (coerce s 'list)) 'string)))
 
 (defun parse-params (s)
+  "function to break down the parameter list with multiple key-value pairs and create an a list of those"
   (let* ((i1 (position #\= s))
 	 (i2 (position #\& s)))
     (cond (i1 (cons (cons (intern (string-upcase (subseq s 0 i1)))
@@ -31,10 +32,11 @@ ascii coded characters"
 	  (t s))))
 
 (defun parse-url (request)
-  (let* ((url (subseq request 
+  (let* ((url (subseq request
 		      (+ 2 (position #\space request))
 		      (position #\space request :from-end t)))
-	 (x (position #\? request)))
+	 (x (position #\? url)))
     (if x 
 	(cons (subseq url 0 x) (parse-params (subseq url (1+ x))))
 	(cons url '()))))
+
