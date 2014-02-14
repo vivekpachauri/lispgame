@@ -40,3 +40,18 @@ ascii coded characters"
 	(cons (subseq url 0 x) (parse-params (subseq url (1+ x))))
 	(cons url '()))))
 
+(defun get-header (steam)
+  "function to read the header information of the received request"
+  (let* ((s (read-line stream))
+	 (h (let ((i (position #\: s)))
+	      (when i (cons (intern (string-upcase (subseq s 0 i)))
+			    (subseq s (+ 2 i)))))))
+    (when h (cons h (get-header stream)))))
+
+(defun get-content-params (stream header)
+  (let ((length (cdr (assoc 'content-length header))))
+    (when length
+      (let ((content (make-string (parse-integer length))))
+	(read-sequence content stream)
+	(parse-params content)))))
+
