@@ -66,22 +66,3 @@
 	    '()
 	    (append (list (car lst)) (remove-last (cdr lst)))))
 
-
-;;;string stream
-(defparameter ostr (make-string-output-stream))
-
-;;;defining custom error conditions
-(define-condition foo () ()
-  (:report (lambda (condition stream)
-	     (princ "stop fooing around idiot!!" stream))))
-
-(define-condition bar () ()
-  (:report (lambda (condition stream)
-	     (princ "stop baring around dummies!!" stream))))
-
-(defun bad-function ()
-  (let ((r (random 100)))
-    (if (< r 50)
-	(error 'foo)
-	(error 'bar))))
-
